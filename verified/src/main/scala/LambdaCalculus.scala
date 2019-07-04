@@ -38,5 +38,14 @@ object LambdaCalculus {
     }
     case _ => None()
   }
+
+  def cbvTrace(t: Term, max: Int): List[Term] = {
+    require(0 <= max)
+    if (max==0) List(t)
+    else cbvReduce1(t) match {
+      case None() => List(t)
+      case Some(tRed) => t :: cbvTrace(tRed, max-1)
+    }
+  }
 }
 
