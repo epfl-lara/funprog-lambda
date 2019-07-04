@@ -4,14 +4,30 @@ import stainless.annotation._
 
 object print {
   import LambdaCalculus._
-  
-  val dot_string: String = ". "
-  val lambda_string: String = "\u03BB"
+
+  // naive print in Scala-like notation
   def scala(t: Term): String = t match {
     case Var(s) => s
     case App(f, arg) => scala(f) + "(" + scala(arg) + ")"
     case Lam(s, body) => "(" + s + "=> " + scala(body) + ")"
   }
+ 
+  val dot_string: String = ". "
+  val lambda_string: String = "\u03BB"
+  
+  // naive print in lambda notation (with dots)
+  def print_long(t: Term): String = {
+    t match {
+      case Var(s) => s
+      case Lam(s,body) =>
+	"(" + lambda_string + s + ". " + print_long(body) + ")"
+      case App(f,arg) =>
+	"(" + print_long(f) + " " + print_long(arg) + ")"
+    }
+  }
+
+  // nice printing in lambda notation
+
   def print(t: Term): String = {
     t match {
       case Var(s) => s
