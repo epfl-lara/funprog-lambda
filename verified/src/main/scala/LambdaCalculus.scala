@@ -38,10 +38,5 @@ object LambdaCalculus {
     }
     case _ => None()
   }
-  
-  def test(x: Int): Boolean = {
-    require (0 < x && x < 100)
-    (x + x) % 2 == 0
-  }.holds
 }
 
