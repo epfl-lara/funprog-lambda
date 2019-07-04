@@ -15,4 +15,3 @@ lazy val verified = project
   .settings(
     name := "example-verified"
   )
-
