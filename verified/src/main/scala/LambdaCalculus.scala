@@ -8,30 +8,36 @@ object LambdaCalculus {
   case class App(f: Term, arg: Term) extends Term 
   case class Lam(s: String, body: Term) extends Term 
 
+  // Variables used in t that are not bound by lambda
   def free_vars(t: Term): List[String] = t match {
     case Var(s) => List(s)
     case App(f, arg) => free_vars(f) ++ free_vars(arg)
     case Lam(s, body) => free_vars(body) - s
   }
+
+  // Naively replace v with replW in t
   def replace(v: String, replW: Term, t: Term): Term =
     t match {
       case Var(s) => if (s==v) replW else t
       case App(f, arg) => App(replace(v,replW,f),
 			      replace(v,replW,arg))
       case Lam(s, body) =>
-	if (s==v) t else Lam(s, replace(v,replW,body))
+	if (s==v) t // nothing to replace
+	else Lam(s, replace(v,replW,body))
     }
 
-  @extern
+  // String containing k apostrofy symbols
   def strOf(k: Long): String =
     if (k <= 0) "" else strOf(k-1) + "'"
 
+  // Return a name similar to s but distinct from names in avoid
   def getFresh(s: String, k: Long, avoid: List[String]): String = {
     val s1 = s + strOf(k)
     if (avoid.contains(s1)) getFresh(s, k+1, avoid)
     else s1
   }
-  
+
+  // Capture-avoiding substitution
   def replaceSafe(v: String, replW: Term, t: Term): Term =
     t match {
       case Var(s) => if (s==v) replW else t
@@ -40,10 +46,10 @@ object LambdaCalculus {
       case Lam(s, body) => 
 	if (s==v) t else {
 	  val fv = free_vars(replW)
-	  if (fv.contains(s)) {
+	  if (fv.contains(s)) { // the only differce with 'replace'
 	    val s1 = getFresh(s, 1, fv)
-	    val body1 = replace(s, Var(s1), body)
-	    Lam(s1, replace(v, replW, body1))
+	    val body1 = replace(s, Var(s1), body) // rename s -> s1
+	    Lam(s1, replace(v, replW, body1)) // replace in renamed
 	  } else Lam(s, replace(v, replW, body))
 	}
     }
@@ -74,10 +80,11 @@ object LambdaCalculus {
     }
   }
 
+  // Tries to reduce at top level if possible
   def betaReduce(t: Term): Option[Term] = t match {
-    case App(Lam(s,body),arg) =>
+    case App(Lam(s,body),arg) =>    // beta reduction
       Some(replaceSafe(s,arg,body))
-    case App(App(App(Var(ifSym),
+    case App(App(App(Var(ifSym), // if is lazy
           Var(cond)), trueBranch), falseBranch) =>
       if (cond==trueSym) Some(trueBranch)
       else if (cond==falseSym) Some(falseBranch)
@@ -85,22 +92,25 @@ object LambdaCalculus {
     case App(App(Var(s), Var(n1)), Var(n2)) => binOpStr(s,n1,n2)    
     case _ => None()
   }
-  
+
+  // Recursively tries to find the first redex in following 'App'
+  // If found, reduce it once and return
   def cbvReduce1(t: Term): Option[Term] =
     betaReduce(t) match {
-      case Some(tr) => Some(tr)
+      case Some(tr) => Some(tr) // redex was on top
       case None() => t match {
-	case App(f, arg) => cbvReduce1(f) match {
-	  case Some(fRed) => Some(App(fRed, arg))
-	  case None() => cbvReduce1(arg) match {
+	case App(f, arg) => cbvReduce1(f) match {// reduce f first
+	  case Some(fRed) => Some(App(fRed, arg)) // enough for now
+	  case None() => cbvReduce1(arg) match { // reduce arg
 	    case Some(argRed) => Some(App(f, argRed))
-	    case None() => None()
+	    case None() => None() // nothing could be reduced
 	  }
 	}
-	case _ => None()
+	case _ => None() // do not reduce underneath lambda
       }
     }
 
+  // Applies cbvReduce1 at most max times and gives list of steps
   def cbvTrace(t: Term, max: Int): List[Term] = {
     require(0 <= max)
     if (max==0) List(t)
