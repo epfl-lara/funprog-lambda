@@ -80,9 +80,15 @@ object LambdaCalculus {
     }
   }
 
+  def isValue(t: Term): Boolean = t match {
+    case Var(_) => true
+    case Lam(_,_) => true
+    case App(_,_) => false
+  }
+  
   // Tries to reduce at top level if possible
-  def betaReduce(t: Term): Option[Term] = t match {
-    case App(Lam(s,body),arg) =>    // beta reduction
+  def betaReduce(t: Term, nonStrict: Boolean): Option[Term] = t match {
+    case App(Lam(s,body),arg) if nonStrict || isValue(arg) => // beta reduction
       Some(replaceSafe(s,arg,body))
     case App(App(App(Var(ifSym), // if is lazy
           Var(cond)), trueBranch), falseBranch) =>
@@ -94,14 +100,14 @@ object LambdaCalculus {
   }
 
   // Recursively tries to find the first redex in following 'App'
-  // If found, reduce it once and return
-  def cbvReduce1(t: Term): Option[Term] =
-    betaReduce(t) match {
+  // If found, reduce it once and return. This is outermost reduction.
+  def reduce1(t: Term, nonS: Boolean): Option[Term] =
+    betaReduce(t, nonS) match {
       case Some(tr) => Some(tr) // redex was on top
       case None() => t match {
-	case App(f, arg) => cbvReduce1(f) match {// reduce f first
+	case App(f, arg) => reduce1(f, nonS) match {// reduce f first
 	  case Some(fRed) => Some(App(fRed, arg)) // enough for now
-	  case None() => cbvReduce1(arg) match { // reduce arg
+	  case None() => reduce1(arg, nonS) match { // reduce arg
 	    case Some(argRed) => Some(App(f, argRed))
 	    case None() => None() // nothing could be reduced
 	  }
@@ -110,13 +116,13 @@ object LambdaCalculus {
       }
     }
 
-  // Applies cbvReduce1 at most max times and gives list of steps
-  def cbvTrace(t: Term, max: Int): List[Term] = {
+  // Applies reduce1 at most max times and gives list of steps
+  def trace(t: Term, nonStrict: Boolean, max: Int): List[Term] = {
     require(0 <= max)
     if (max==0) List(t)
-    else cbvReduce1(t) match {
+    else reduce1(t, nonStrict) match {
       case None() => List(t)
-      case Some(tRed) => t :: cbvTrace(tRed, max-1)
+      case Some(tRed) => t :: trace(tRed, nonStrict, max-1)
     }
   }
 }
