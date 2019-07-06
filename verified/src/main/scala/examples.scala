@@ -57,7 +57,30 @@ object ex {
   def tailT(t: Term): Term = App(App(t, Var("?")),
 				 Lam("h",Lam("t", Var("t"))))
   val getlist2nd = headT(tailT(mkVarList(List("1","2","3"))))
-  
+
+  def Y(F: Term): Term = {
+    val fLoop = Lam("x", App(F, App(Var("x"), Var("x"))))
+    App(fLoop, fLoop)
+  }
+
+  def op2(op: String, arg1: Term, arg2: Term) =
+    App(App(Var(op), arg1), arg2)
+  def mkIf(cond: Term, trueB: Term, falseB: Term) = {
+    App(App(App(Var("if"), cond), trueB), falseB)
+  }
+  def mkRecursive(body: Term): Term = {
+    val fLoop = Lam("f", replace("rec", App(Var("f"), Var("f")), body))
+    App(fLoop, fLoop)
+  }
+  def mul = mkRecursive(Lam("x", Lam("y",
+    mkIf(op2("<", Var("y"), Var("1")),
+         Var("0"),
+	 op2("+",
+	   Var("x"),
+  	   op2("rec", Var("x"), op2("-", Var("y"), Var("1"))))))))
+
+  val mul52 = App(App(mul, Var("5")), Var("2"))
+			
   val terms = List(
     "id" -> id,
     "self id" -> selfid,
@@ -68,12 +91,15 @@ object ex {
     "evalOrder0" -> evalOrder0,
     "evalOrder2" -> evalOrder2,
     "getSecond" -> getSecond,
-    "getlist2nd" -> getlist2nd
+    "getlist2nd" -> getlist2nd,
+    "Y(second)" -> Y(second),
+    "mul52" -> mul52
   )
   val termStrict = List(
     "evalOrder0" -> evalOrder0,
     "evalOrder2" -> evalOrder2,
-    "getlist2nd" -> getlist2nd
+    "getlist2nd" -> getlist2nd,
+    "mul52" -> mul52
   )
 
   def showTrace(t: Term, nonStrict: Boolean): String =
