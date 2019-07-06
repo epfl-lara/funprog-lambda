@@ -67,17 +67,22 @@ object LambdaCalculus {
     else if (op==ltSym) Some(if (x < y) 1 else 0)
     else None()
   }
-  
+
   @extern
-  def binOpStr(op: String, x: String, y: String): Option[Term] = {
-    try {
-      binOp(op, x.toLong, y.toLong) match {
-	case Some(i) => Some(Var(i.toString))
-	case None() => None()
-      }
-    } catch {
+  def str2long(s: String): Option[Long] = {
+    try Some(s.toLong) catch {
       case _: java.lang.NumberFormatException => None()
     }
+  }
+  @extern 
+  def long2str(l: Long): String = l.toString
+    
+  def binOpStr(op: String, x: String, y: String): Option[Term] = {
+    for {
+      ix <- str2long(x)
+      iy <- str2long(y)
+      r <- binOp(op, ix, iy)
+    } yield Var(long2str(r))
   }
 
   def isValue(t: Term): Boolean = t match {

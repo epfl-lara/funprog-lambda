@@ -69,7 +69,7 @@ object ex {
     App(App(App(Var("if"), cond), trueB), falseB)
   }
   def mkRecursive(body: Term): Term = {
-    val fLoop = Lam("f", replace("rec", App(Var("f"), Var("f")), body))
+    val fLoop = Lam("f", replace("self", App(Var("f"), Var("f")), body))
     App(fLoop, fLoop)
   }
   def mul = mkRecursive(Lam("x", Lam("y",
@@ -77,7 +77,7 @@ object ex {
          Var("0"),
 	 op2("+",
 	   Var("x"),
-  	   op2("rec", Var("x"), op2("-", Var("y"), Var("1"))))))))
+  	   op2("self", Var("x"), op2("-", Var("y"), Var("1"))))))))
 
   val mul52 = App(App(mul, Var("5")), Var("2"))
 			
@@ -86,7 +86,7 @@ object ex {
     "self id" -> selfid,
     "twice_doubling" -> twice_doubling,
     "abs42" -> abs42,
-    "firstAB" -> firstAB,    
+    "firstAB" -> firstAB,
     "captureFirst" -> captureFirst,
     "evalOrder0" -> evalOrder0,
     "evalOrder2" -> evalOrder2,
@@ -102,6 +102,14 @@ object ex {
     "mul52" -> mul52
   )
 
+  val termsEval = List(
+    "3+4" -> App(App(Var("+"), Var("3")), Var("4")),
+    "abs42" -> abs42,
+    "manyOps" -> manyOps,
+    "evalOrder0" -> evalOrder0,
+    "evalOrder2" -> evalOrder2
+  )
+  
   def showTrace(t: Term, nonStrict: Boolean): String =
     List.mkString(trace(t, nonStrict, 50), "\n ==> ", print.print)
   
@@ -110,8 +118,20 @@ object ex {
     (if (nonStrict) " (non-strict): " else " (strict): ") +
     showTrace(p._2, nonStrict)
   }
+  def showEval(p: (String,Term)): String = {
+    import EnvBased._
+    val msg = p._1
+    val t = p._2
+    val tS = evalS(initEnv, t) match {
+      case FunVal(f) => "<function>"
+      case LongVal(l) => long2str(l)
+      case Data(t) => print.print(t)
+    }
+    msg + "(eval): " + tS
+  }
 
   val toShow: String =
+    List.mkString(termsEval, "\n", showEval) + "\n"  +
     List.mkString(terms, "\n", showNamedTerm(true)) + "\n" +
-    List.mkString(termStrict, "\n", showNamedTerm(false)) + "\n"   
+    List.mkString(termStrict, "\n", showNamedTerm(false)) + "\n"    
 }
