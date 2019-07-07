@@ -1,6 +1,7 @@
 import stainless.lang._
 import stainless.collection._
 import stainless.annotation._
+// import stainless.io.StdOut.println
 
 object EnvBased {
   import LambdaCalculus._
@@ -12,7 +13,7 @@ object EnvBased {
 
   case class Env(f: String => Option[Value]) {
     def apply(x: String) = f(x)
-    def update(s: String, v: Value): Env = {
+    def update(s: String, v: => Value): Env = {
       def f1(s1: String): Option[Value] = {
 	if (s1==s) Some(v) else f(s1)
       }
@@ -43,19 +44,27 @@ object EnvBased {
   val initEnv = Env(initEnvFun)
   
   def evalS(env: Env, t: Term): Value = {
+    // println("Evaluating " + print.print(t))
     t match {
       case Var(s) => str2long(s) match {
-	case Some(i) => LongVal(i)
+	case Some(i) => LongVal(i) // number
 	case None() => env(s) match {
-	  case Some(v) => v // defined
-	  case None() => Data(t) // undefined
+	  case Some(v) => v // defined variable
+	  case None() => {
+	    // println("could not find " + s + " in env")
+	    Data(t) // undefined
+	  }
 	}
       }
       case Lam(n, body) => {
 	def f(x: Value) = evalS(env.update(n, x), body)
 	FunVal(f)
       }
-      case App(App(App(Var(ifSym), cond), trueBranch), falseBranch) =>
+      case App(Var(s), Lam(recCallName, body)) if s==recSym => {
+	def evalBody: Value = evalS(env.update(recCallName, evalBody), body)
+	evalBody
+      }
+      case App(App(App(Var(s), cond), trueBranch), falseBranch) if s==ifSym =>
 	evalS(env, cond) match {
 	  case LongVal(i) => {
 	    if (i==1) evalS(env,trueBranch)

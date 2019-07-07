@@ -72,14 +72,19 @@ object ex {
     val fLoop = Lam("f", replace("self", App(Var("f"), Var("f")), body))
     App(fLoop, fLoop)
   }
-  def mul = mkRecursive(Lam("x", Lam("y",
+
+  val mulTerm = Lam("x", Lam("y",
     mkIf(op2("<", Var("y"), Var("1")),
          Var("0"),
 	 op2("+",
 	   Var("x"),
-  	   op2("self", Var("x"), op2("-", Var("y"), Var("1"))))))))
-
+  	     op2("self", Var("x"), op2("-", Var("y"), Var("1")))))))
+  val mul = mkRecursive(mulTerm)
   val mul52 = App(App(mul, Var("5")), Var("2"))
+
+  val mulEnv = App(Var(recSym), Lam("self", mulTerm))
+  val mul52env = App(App(mulEnv, Var("5")), Var("2"))
+
 			
   val terms = List(
     "id" -> id,
@@ -107,7 +112,8 @@ object ex {
     "abs42" -> abs42,
     "manyOps" -> manyOps,
     "evalOrder0" -> evalOrder0,
-    "evalOrder2" -> evalOrder2
+    "evalOrder2" -> evalOrder2,
+    "mul52env" -> mul52env
   )
   
   def showTrace(t: Term, nonStrict: Boolean): String =
@@ -130,8 +136,10 @@ object ex {
     msg + "(eval): " + tS
   }
 
-  val toShow: String =
-    List.mkString(termsEval, "\n", showEval) + "\n"  +
+  def toShow: String =
+    /*
     List.mkString(terms, "\n", showNamedTerm(true)) + "\n" +
-    List.mkString(termStrict, "\n", showNamedTerm(false)) + "\n"    
+    List.mkString(termStrict, "\n", showNamedTerm(false)) + "\n" +
+*/
+    List.mkString(termsEval, "\n", showEval) + "\n"
 }

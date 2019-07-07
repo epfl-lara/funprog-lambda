@@ -60,6 +60,7 @@ object LambdaCalculus {
   val trueSym = "1"
   val falseSym = "0"
   val ifSym = "if"
+  val recSym = "rec"
   
   def binOp(op: String, x: Long, y: Long): Option[Long] = {
     if (op==plusSym) Some(x + y)
