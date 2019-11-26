@@ -2,7 +2,7 @@
 object RecursiveLanguage {
 
   sealed abstract class Expr
-  case class Const(c: Int) extends Expr
+  case class Const(c: BigInt) extends Expr
   case class Val(name: String) extends Expr
   case class BinOp(op: BinaryOperator, arg1: Expr, arg2: Expr) extends Expr
   case class IfNonzero(cond: Expr, trueE: Expr, falseE: Expr) extends Expr
@@ -15,7 +15,7 @@ object RecursiveLanguage {
   case object Times extends BinaryOperator
   case object LessEq extends BinaryOperator
 
-  def evalBinOp(op: BinaryOperator)(x: Int, y: Int): Int = op match {
+  def evalBinOp(op: BinaryOperator)(x: BigInt, y: BigInt): BigInt = op match {
     case Plus => x + y
     case Minus => x - y
     case Times => x * y
@@ -52,7 +52,7 @@ object RecursiveLanguage {
     case _ => e                 
   }
   
-  def evalExpr(e: Expr): Int = e match {
+  def evalExpr(e: Expr): BigInt = e match {
     case Const(c) => c
     case Val(_) => 0 // should have been replaced
     case BinOp(op, arg1, arg2) =>
@@ -78,6 +78,6 @@ object RecursiveLanguage {
 
   def main(args: Array[String]): Unit = {
     print("result is: ")
-    println(evalExpr(Call("fact", List(Const(5)))))
+    println(evalExpr(Call("fact", List(Const(100)))))
   }
 }
