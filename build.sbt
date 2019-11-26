@@ -15,3 +15,10 @@ lazy val verified = project
   .settings(
     name := "example-verified"
   )
+
+lazy val recursive = project
+  .in(file("recursive"))
+//  .enablePlugins(StainlessPlugin)
+  .settings(
+    name := "recursive"
+  )
