@@ -35,10 +35,10 @@ object ExpressionLanguage {
       else evalExpr(falseE)
   }
 
-  def expr1 = BinOp(Times, Const(6), Const(7))
-  def cond1 = BinOp(LessEq, expr1, Const(50))
-  def expr2 = IfNonzero(cond1, Const(10), Const(20))
-  def expr3 = BinOp(Power, Const(10), Const(100))
+  def expr1 = BinOp(Times, Const(6), Const(7))       // 6*7
+  def cond1 = BinOp(LessEq, expr1, Const(50))        // expr1 < 50
+  def expr2 = IfNonzero(cond1, Const(10), Const(20)) // if (cond1) 10 else 20
+  def expr3 = BinOp(Power, Const(10), Const(100))    // 10^100
 
   def main(args: Array[String]): Unit = {
     print("expr1 --> ")
@@ -48,5 +48,4 @@ object ExpressionLanguage {
     print("expr3 --> ")
     println(evalExpr(expr3))
   }
-
 }
