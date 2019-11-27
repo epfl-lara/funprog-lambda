@@ -5,7 +5,6 @@ import stainless.annotation._
 object ExpressionLanguage {
   sealed abstract class Expr
   case class Const(c: BigInt) extends Expr
-  case class Val(name: String) extends Expr
   case class BinOp(op: BinaryOperator, arg1: Expr, arg2: Expr) extends Expr
   case class IfNonzero(cond: Expr, trueE: Expr, falseE: Expr) extends Expr
 
@@ -26,7 +25,6 @@ object ExpressionLanguage {
 
   def eval(e: Expr): BigInt = e match {
     case Const(c) => c
-    case Val(_) => 0
     case BinOp(op, arg1, arg2) =>
       evalBinOp(op)(eval(arg1), eval(arg2))
     case IfNonzero(cond, trueE, falseE) =>
@@ -49,7 +47,6 @@ object ExpressionLanguage {
 
   def str(e: Expr): String = e match {
     case Const(c) => c.toString
-    case Val(n) => n
     case BinOp(op, arg1, arg2) =>
       "(" + str(arg1) + " "  + strOp(op) + " " + str(arg2) + ")"
     case IfNonzero(cond, trueE, falseE) =>
