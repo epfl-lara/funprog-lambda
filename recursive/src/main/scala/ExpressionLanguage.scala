@@ -3,7 +3,6 @@ import stainless.collection._
 import stainless.annotation._
 
 object ExpressionLanguage {
-
   sealed abstract class Expr
   case class Const(c: BigInt) extends Expr
   case class Val(name: String) extends Expr
@@ -25,14 +24,14 @@ object ExpressionLanguage {
     case LessEq => if (x <= y) 1 else 0
   }
 
-  def evalExpr(e: Expr): BigInt = e match {
+  def eval(e: Expr): BigInt = e match {
     case Const(c) => c
     case Val(_) => 0
     case BinOp(op, arg1, arg2) =>
-      evalBinOp(op)(evalExpr(arg1), evalExpr(arg2))
+      evalBinOp(op)(eval(arg1), eval(arg2))
     case IfNonzero(cond, trueE, falseE) =>
-      if (evalExpr(cond) != 0) evalExpr(trueE)
-      else evalExpr(falseE)
+      if (eval(cond) != 0) eval(trueE)
+      else eval(falseE)
   }
 
   def expr1 = BinOp(Times, Const(6), Const(7))       // 6*7
@@ -40,12 +39,32 @@ object ExpressionLanguage {
   def expr2 = IfNonzero(cond1, Const(10), Const(20)) // if (cond1) 10 else 20
   def expr3 = BinOp(Power, Const(10), Const(100))    // 10^100
 
+  def strOp(op: BinaryOperator): String = op match {
+    case Plus => "+"
+    case Minus => "-"
+    case Times => "*"
+    case Power => "^"
+    case LessEq => "<="
+  }
+
+  def str(e: Expr): String = e match {
+    case Const(c) => c.toString
+    case Val(n) => n
+    case BinOp(op, arg1, arg2) =>
+      "(" + str(arg1) + " "  + strOp(op) + " " + str(arg2) + ")"
+    case IfNonzero(cond, trueE, falseE) =>
+      "(if (" + str(cond) + ") " + 
+      str(trueE) + " else " + str(falseE) + ")"
+  }
+
+  def show(e: Expr): Unit = {
+    println(str(e))
+    println(" ~~> " + eval(e))
+    println
+  }
   def main(args: Array[String]): Unit = {
-    print("expr1 --> ")
-    println(evalExpr(expr1))
-    print("expr2 --> ")
-    println(evalExpr(expr2))
-    print("expr3 --> ")
-    println(evalExpr(expr3))
+    show(expr1)
+    show(expr2)
+    show(expr3)
   }
 }
