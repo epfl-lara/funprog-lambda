@@ -50,7 +50,7 @@ object ExpressionLanguage {
     case BinOp(op, arg1, arg2) =>
       "(" + str(arg1) + " "  + strOp(op) + " " + str(arg2) + ")"
     case IfNonzero(cond, trueE, falseE) =>
-      "(if (" + str(cond) + ") " + 
+      "(if (" + str(cond) + ") then " + 
       str(trueE) + " else " + str(falseE) + ")"
   }
 
